@@ -1,14 +1,9 @@
 -- likes roblox exploites
 
---[[ 
-🔥 Music Visualizer by Yoreflintz Vex x Davvon Mode 🔥
-🎧 Real FFT bars, neon glow, pause/resume/stop, song picker
- + getgenv control for external control
-]]
+--🔥 Music Visualizer by Yoreflintz Vex x Davvon Mode 🔥
+--🎧 Real FFT bars, neon glow, pause/resume/stop, song picker + getgenv control for external control
 
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local StarterGui = game:GetService("StarterGui")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
@@ -25,236 +20,132 @@ getgenv().pauseMusic = getgenv().pauseMusic or false
 getgenv().resumeMusic = getgenv().resumeMusic or false
 getgenv().stopMusic = getgenv().stopMusic or false
 
-local gui = Instance.new("ScreenGui")
-gui.Name = "DavvonVisualizer"
-gui.ResetOnSpawn = false
-gui.Parent = game.CoreGui
-
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 400, 0, 200)
-frame.Position = UDim2.new(0.5, -200, 0.7, 0)
-frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-frame.BorderSizePixel = 0
-frame.Active = true
-frame.Draggable = true
-
--- Dropdown
-local dropdown = Instance.new("TextButton", frame)
-dropdown.Size = UDim2.new(1, -10, 0, 30)
-dropdown.Position = UDim2.new(0, 5, 0, 5)
-dropdown.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-dropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
-dropdown.Text = "🎵 Select a Song"
-dropdown.Font = Enum.Font.GothamBold
-dropdown.TextSize = 14
-
-local list = Instance.new("Frame", frame)
-list.Position = UDim2.new(0, 5, 0, 40)
-list.Size = UDim2.new(1, -10, 0, 100)
-list.Visible = false
-list.BackgroundTransparency = 1
-
-local layout = Instance.new("UIListLayout", list)
-layout.SortOrder = Enum.SortOrder.Name
-layout.Padding = UDim.new(0, 2)
-
-local controlBar = Instance.new("Frame", frame)
-controlBar.Size = UDim2.new(1, -10, 0, 30)
-controlBar.Position = UDim2.new(0, 5, 1, -35)
-controlBar.BackgroundTransparency = 1
-
-local function makeBtn(text, pos)
-	local btn = Instance.new("TextButton", controlBar)
-	btn.Size = UDim2.new(0.3, -5, 1, 0)
-	btn.Position = pos
-	btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	btn.TextColor3 = Color3.new(1,1,1)
-	btn.Font = Enum.Font.GothamBold
-	btn.TextSize = 14
-	btn.Text = text
-	return btn
-end
-
-local pauseBtn = makeBtn("⏸️ Pause", UDim2.new(0, 0, 0, 0))
-local resumeBtn = makeBtn("▶️ Resume", UDim2.new(0.35, 0, 0, 0))
-local stopBtn = makeBtn("⏹ Stop", UDim2.new(0.7, 0, 0, 0))
-
-local barFrame = Instance.new("Frame", frame)
-barFrame.Size = UDim2.new(1, -20, 0, 80)
-barFrame.Position = UDim2.new(0, 10, 0.5, -10)
-barFrame.BackgroundTransparency = 1
-
-local bars = {}
-local numBars = 20
-for i = 1, numBars do
-	local bar = Instance.new("Frame", barFrame)
-	bar.Size = UDim2.new(0, 10, 0, 20)
-	bar.Position = UDim2.new((i - 1)/numBars, 0, 1, -20)
-	bar.BackgroundColor3 = Color3.fromRGB(0, 255, 170)
-	bar.BorderSizePixel = 0
-
-	local glow = Instance.new("UIStroke", bar)
-	glow.Thickness = 2
-	glow.Color = Color3.fromRGB(0, 255, 255)
-	glow.Transparency = 0.3
-
-	bars[i] = bar
-end
-
 local soundPlaying = nil
 local currentPlayingSong = nil
 
 local function downloadAndPrepareSound(songName)
-	local url = songs[songName]
-	if not url then return end
+    local url = songs[songName]
+    if not url then return end
 
-	local fileName = songName:gsub("%s+", "") .. ".mp3"
-	
-	if not pcall(function() return readfile(fileName) end) then
-		writefile(fileName, game:HttpGet(url))
-	end
-	
-	return getcustomasset(fileName)
+    local fileName = songName:gsub("%s+", "") .. ".mp3"
+    
+    if not pcall(function() return readfile(fileName) end) then
+        writefile(fileName, game:HttpGet(url))
+    end
+    
+    return getcustomasset(fileName)
 end
 
 local function createSound(id)
-	local sound = Instance.new("Sound")
-	sound.Name = "VisualizerTrack"
-	sound.SoundId = id
-	sound.Volume = 1
-	sound.Looped = false
-	sound.Parent = player:WaitForChild("PlayerGui")
-	return sound
+    local sound = Instance.new("Sound")
+    sound.Name = "VisualizerTrack"
+    sound.SoundId = id
+    sound.Volume = 1
+    sound.Looped = false
+    sound.Parent = player:WaitForChild("PlayerGui")
+    return sound
 end
+
+local numBars = 20
+local bars = {}
+
+-- Create invisible bar frames for visualizer (optional, or skip to keep it GUI-free)
+-- But if you want the pulsing bars, you'd keep these UI parts here
+-- For pure no-GUI mode, comment this block out:
+
+--[[
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+ScreenGui.Name = "VisualizerBars"
+local barFrame = Instance.new("Frame", ScreenGui)
+barFrame.Size = UDim2.new(1, 0, 0, 100)
+barFrame.Position = UDim2.new(0, 0, 1, -100)
+barFrame.BackgroundTransparency = 1
+
+for i = 1, numBars do
+    local bar = Instance.new("Frame", barFrame)
+    bar.Size = UDim2.new(0, 10, 0, 20)
+    bar.Position = UDim2.new((i - 1)/numBars, 0, 1, -20)
+    bar.BackgroundColor3 = Color3.fromRGB(0, 255, 170)
+    bar.BorderSizePixel = 0
+
+    local glow = Instance.new("UIStroke", bar)
+    glow.Thickness = 2
+    glow.Color = Color3.fromRGB(0, 255, 255)
+    glow.Transparency = 0.3
+
+    bars[i] = bar
+end
+]]
 
 function playMusic(songName)
-	if soundPlaying then
-		soundPlaying:Stop()
-		soundPlaying:Destroy()
-		soundPlaying = nil
-	end
+    if soundPlaying then
+        soundPlaying:Stop()
+        soundPlaying:Destroy()
+        soundPlaying = nil
+    end
 
-	local assetId = downloadAndPrepareSound(songName)
-	if not assetId then return end
+    local assetId = downloadAndPrepareSound(songName)
+    if not assetId then return end
 
-	soundPlaying = createSound(assetId)
-	soundPlaying:Play()
-	currentPlayingSong = songName
+    soundPlaying = createSound(assetId)
+    soundPlaying:Play()
+    currentPlayingSong = songName
 
-	StarterGui:SetCore("SendNotification", {
-		Title = "🎶 Now Playing",
-		Text = songName,
-		Duration = 5
-	})
-
-	dropdown.Text = "🎵 " .. songName
-end
-
-dropdown.MouseButton1Click:Connect(function()
-	list.Visible = not list.Visible
-end)
-
-for name, _ in pairs(songs) do
-	local btn = Instance.new("TextButton", list)
-	btn.Size = UDim2.new(1, 0, 0, 25)
-	btn.Text = name
-	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-	btn.TextColor3 = Color3.new(1,1,1)
-	btn.Font = Enum.Font.Gotham
-	btn.TextSize = 14
-	btn.Parent = list
-
-	btn.MouseButton1Click:Connect(function()
-		playMusic(name)
-		list.Visible = false
-	end)
+    print("🎶 Now Playing: " .. songName)
 end
 
 RunService.RenderStepped:Connect(function()
-	if soundPlaying and soundPlaying.IsPlaying then
-		local success, fft = pcall(function()
-			return soundPlaying:GetFFT(512)
-		end)
-		if success and fft then
-			local binsPerBar = math.floor(#fft / numBars)
-			for i = 1, numBars do
-				local sum = 0
-				for j = 1, binsPerBar do
-					sum = sum + fft[(i - 1) * binsPerBar + j]
-				end
-				local avg = sum / binsPerBar
-				local height = math.clamp(avg * 5000, 10, 120)
-				local bar = bars[i]
-				bar.Size = UDim2.new(0, 10, 0, height)
-				bar.Position = UDim2.new(bar.Position.X.Scale, 0, 1, -height)
-			end
-		else
-			for i, bar in ipairs(bars) do
-				local h = math.random(10, 80)
-				bar.Size = UDim2.new(0, 10, 0, h)
-				bar.Position = UDim2.new(bar.Position.X.Scale, 0, 1, -h)
-			end
-		end
-	else
-		for i, bar in ipairs(bars) do
-			bar.Size = UDim2.new(0, 10, 0, 20)
-			bar.Position = UDim2.new(bar.Position.X.Scale, 0, 1, -20)
-		end
-	end
+    if soundPlaying and soundPlaying.IsPlaying then
+        local success, fft = pcall(function()
+            return soundPlaying:GetFFT(512)
+        end)
+        if success and fft then
+            -- Visualizer logic here (optional if you keep bars)
+            -- For no GUI, you can skip this or add your own handling
+        end
+    end
 end)
 
-pauseBtn.MouseButton1Click:Connect(function()
-	if soundPlaying then soundPlaying:Pause() end
-end)
-
-resumeBtn.MouseButton1Click:Connect(function()
-	if soundPlaying then soundPlaying:Resume() end
-end)
-
-stopBtn.MouseButton1Click:Connect(function()
-	if soundPlaying then
-		soundPlaying:Stop()
-		soundPlaying:Destroy()
-		soundPlaying = nil
-		currentPlayingSong = nil
-	end
-end)
-
--- Monitor getgenv for external commands every 0.3 sec
+-- Main loop watching getgenv controls
 spawn(function()
-	while true do
-		wait(0.3)
-		-- Play new song if set and different
-		if getgenv().playSong and getgenv().playSong ~= currentPlayingSong then
-			if songs[getgenv().playSong] then
-				playMusic(getgenv().playSong)
-			else
-				warn("Song not found in list: ".. tostring(getgenv().playSong))
-			end
-		end
+    while true do
+        wait(0.3)
+        if getgenv().playSong and getgenv().playSong ~= currentPlayingSong then
+            if songs[getgenv().playSong] then
+                playMusic(getgenv().playSong)
+            else
+                warn("Song not found in list: ".. tostring(getgenv().playSong))
+            end
+        end
 
-		if getgenv().pauseMusic then
-			if soundPlaying and soundPlaying.IsPlaying then
-				soundPlaying:Pause()
-			end
-			getgenv().pauseMusic = false
-		end
+        if getgenv().pauseMusic then
+            if soundPlaying and soundPlaying.IsPlaying then
+                soundPlaying:Pause()
+            end
+            getgenv().pauseMusic = false
+        end
 
-		if getgenv().resumeMusic then
-			if soundPlaying and not soundPlaying.IsPlaying then
-				soundPlaying:Resume()
-			end
-			getgenv().resumeMusic = false
-		end
+        if getgenv().resumeMusic then
+            if soundPlaying and not soundPlaying.IsPlaying then
+                soundPlaying:Resume()
+            end
+            getgenv().resumeMusic = false
+        end
 
-		if getgenv().stopMusic then
-			if soundPlaying then
-				soundPlaying:Stop()
-				soundPlaying:Destroy()
-				soundPlaying = nil
-				currentPlayingSong = nil
-			end
-			getgenv().stopMusic = false
-		end
-	end
+        if getgenv().stopMusic then
+            if soundPlaying then
+                soundPlaying:Stop()
+                soundPlaying:Destroy()
+                soundPlaying = nil
+                currentPlayingSong = nil
+            end
+            getgenv().stopMusic = false
+        end
+    end
 end)
+
+-- Example usage to pick a song from your external script or console:
+-- getgenv().playSong = "Love For You"
+-- getgenv().pauseMusic = true
+-- getgenv().resumeMusic = true
+-- getgenv().stopMusic = true
